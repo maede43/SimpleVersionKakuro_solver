@@ -20,6 +20,8 @@ public class Main {
                 board[i][j] = sc.nextInt();
             }
         }
-
+        Problem CSP_problem = new Problem(rows, columns, board);
+//        System.out.println(CSP_problem);
+//        CSP_problem.printBoard();
     }
 }
