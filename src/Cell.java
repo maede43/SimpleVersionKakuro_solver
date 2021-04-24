@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Set;
 
 // A cell can be Constraint, Variable or Black
@@ -24,10 +23,10 @@ public class Cell {
 }
 
 class Constraint extends Cell {
-    private int constraintValue;
-    private Direction direction; // vertical or horizontal
-    private Set<Integer> valueOfRelatedVariables = new HashSet<>();
-    private int numberOfRelatedVar;
+    private final int constraintValue;
+    private final Direction direction; // vertical or horizontal
+    private final Set<Integer> valueOfRelatedVariables = new HashSet<>();
+    private final int numberOfRelatedVar;
     private int already_sum;   // sum of value of related variables
 
     public Constraint(int i, int j, int constraintValue, Direction direction, int numberOfRelatedVar) {
@@ -76,10 +75,8 @@ class Constraint extends Cell {
 class Variable extends Cell {
     private int value;
     private ArrayList<Integer> domain = new ArrayList<>();
-    private Constraint rowConstraint;
-    private Constraint columnConstraint;
-    private Variable left;
-    private Variable up;
+    private final Constraint rowConstraint;
+    private final Constraint columnConstraint;
 
     public Variable(int i, int j, Constraint rowConstraint, Constraint columnConstraint) {
         super(i, j);
@@ -96,14 +93,6 @@ class Variable extends Cell {
 
     public void setValue(int value) {
         this.value = value;
-    }
-
-    public void setLeft(Variable left) {
-        this.left = left;
-    }
-
-    public void setUp(Variable up) {
-        this.up = up;
     }
 
     public ArrayList<Integer> getDomain() {

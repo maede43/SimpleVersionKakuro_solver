@@ -47,26 +47,6 @@ public class Problem {
                 }
             }
         }
-        for (int i = 0; i < nRows; i++) {
-            for (int j = 0; j < nColumns; j++) {
-                if (board[i][j] instanceof Variable) {
-                    Variable left;
-                    Variable up;
-                    if (puzzle[i][j - 1] > 0)
-                        left = findRightmostVar(i, puzzle);
-                    else
-                        left = (Variable) board[i][j - 1];
-                    if (puzzle[i - 1][j] > 0)
-                        up = findBottommostVar(j, puzzle);
-                    else {
-                        up = (Variable) board[i - 1][j];
-                    }
-//                    System.out.println(board[i][j] + " ===> left : \n   " + left + " ===> up : \n   "  + up + "\n*********");
-                    ((Variable) board[i][j]).setLeft(left);
-                    ((Variable) board[i][j]).setUp(up);
-                }
-            }
-        }
     }
 
     private int numberOfVar_HORIZONTAL(int x, int y, int[][] puzzle) {
@@ -112,28 +92,6 @@ public class Problem {
                 colCons = (Constraint) board[i][y];
         }
         return colCons;
-    }
-
-    private Variable findRightmostVar(int x, int[][] puzzle) {
-        Variable rightmost = null;
-        for (int j = nColumns - 1; j >= 0; j--) {
-            if (puzzle[x][j] == 0) {
-                rightmost = (Variable) board[x][j];
-                break;
-            }
-        }
-        return rightmost;
-    }
-
-    private Variable findBottommostVar(int y, int[][] puzzle) {
-        Variable bottommost = null;
-        for (int i = nRows - 1; i >= 0; i--) {
-            if (puzzle[i][y] == 0) {
-                bottommost = (Variable) board[i][y];
-                break;
-            }
-        }
-        return bottommost;
     }
 
     @Override
@@ -193,7 +151,6 @@ public class Problem {
         var.setValue(0);
     }
     public void printSolution() {
-        StringBuilder str = new StringBuilder();
         for (int i = 0; i < nRows; i++) {
             for (int j = 0; j < nColumns; j++) {
                 if (board[i][j] instanceof Variable)

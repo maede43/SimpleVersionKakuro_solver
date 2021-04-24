@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         int columns = sc.nextInt();
         int rows = sc.nextInt();
-        int board[][] = new int[rows][columns];
+        int[][] board = new int[rows][columns];
         // get puzzle board
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
