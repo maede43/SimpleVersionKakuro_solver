@@ -23,5 +23,7 @@ public class Main {
         Problem CSP_problem = new Problem(rows, columns, board);
 //        System.out.println(CSP_problem);
 //        CSP_problem.printBoard();
+        BacktrackingSearch bt = new BacktrackingSearch(CSP_problem);
+        bt.search();
     }
 }

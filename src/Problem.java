@@ -1,35 +1,39 @@
-import java.util.Arrays;
-
 public class Problem {
     int nRows;
     int nColumns;
     Cell[][] board;
     int variablesNo;
-    int valuedVariablesNo;
+    int assignedVariablesNo;
 
     public Problem(int rows, int columns, int[][] puzzle) {
         this.nRows = rows;
         this.nColumns = columns;
         board = new Cell[nRows][nColumns];
         variablesNo = 0;
-        valuedVariablesNo = 0;
+        assignedVariablesNo = 0;
         for (int i = 0; i < nRows; i++) {
             for (int j = 0; j < nColumns; j++) {
                 /* Constraint cell*/
                 if (puzzle[i][j] > 0) {
+                    int numberOfRelatedVar = 0;
                     Direction dir = null;
-                    if (i == 0)
+                    if (i == 0) {
                         dir = Direction.VERTICAL;
-                    else if (j == 0)
+                        numberOfRelatedVar = numberOfVar_VERTICAL(i, j, puzzle);
+                    } else if (j == 0) {
                         dir = Direction.HORIZONTAL;
-                    else if (puzzle[i - 1][j] == -1) // upper cell is black
+                        numberOfRelatedVar = numberOfVar_HORIZONTAL(i, j, puzzle);
+                    } else if (puzzle[i - 1][j] == -1) { // upper cell is black
                         dir = Direction.VERTICAL;
-                    else if (puzzle[i][j - 1] == -1) // left cell is black
+                        numberOfRelatedVar = numberOfVar_VERTICAL(i, j, puzzle);
+                    } else if (puzzle[i][j - 1] == -1) { // left cell is black
                         dir = Direction.HORIZONTAL;
+                        numberOfRelatedVar = numberOfVar_HORIZONTAL(i, j, puzzle);
+                    }
 
-                    if (dir != null)
-                        board[i][j] = new Constraint(i, j, puzzle[i][j], dir);
-                    else
+                    if (dir != null) {
+                        board[i][j] = new Constraint(i, j, puzzle[i][j], dir, numberOfRelatedVar);
+                    } else
                         System.out.println("something goes wrong! (constraint's dir recognition)");
                 }
                 /* Variable cell */
@@ -63,6 +67,24 @@ public class Problem {
                 }
             }
         }
+    }
+
+    private int numberOfVar_HORIZONTAL(int x, int y, int[][] puzzle) {
+        int count = 0;
+        for (int j = y + 1; j < nColumns; j++) {
+            if (puzzle[x][j] == 0)
+                count++;
+        }
+        return count;
+    }
+
+    private int numberOfVar_VERTICAL(int x, int y, int[][] puzzle) {
+        int count = 0;
+        for (int i = x + 1; i < nRows; i++) {
+            if (puzzle[i][y] == 0)
+                count++;
+        }
+        return count;
     }
 
     public void printBoard() {
@@ -117,22 +139,71 @@ public class Problem {
     @Override
     public String toString() {
         return "variablesNo=" + variablesNo +
-                ", valuedVariablesNo=" + valuedVariablesNo;
+                ", assignedVariablesNo=" + assignedVariablesNo;
+    }
+
+    public Variable getUnassignedVariable() {
+        for (int i = 0; i < nRows; i++) {
+            for (int j = 0; j < nColumns; j++) {
+                if (board[i][j] instanceof Variable && ((Variable) board[i][j]).getValue() == 0)
+                    return (Variable) board[i][j];
+            }
+        }
+        return null;
     }
 
     public boolean isSatisfied() {
-        return (variablesNo == valuedVariablesNo);
+        return (variablesNo == assignedVariablesNo);
     }
 
-    public void addValue(Cell var, int val) {
-        valuedVariablesNo++;
+    public boolean setValueIfIsConsistent(Variable var, int val) {
+        Constraint rowConstraint = var.getRowConstraint();
+        Constraint columnConstraint = var.getColumnConstraint();
+        boolean allDiff = (rowConstraint.isDiff(val) && columnConstraint.isDiff(val));
+        boolean allSum_r = false; // row
+        boolean allSum_c = false; // column
+        int remaining_r = rowConstraint.getValue() - rowConstraint.getAlreadySum();
+        int remaining_c = columnConstraint.getValue() - columnConstraint.getAlreadySum();
+        if (rowConstraint.numberOfUnassignedVar() > 1)
+            allSum_r = (val < remaining_r);
+        else if (rowConstraint.numberOfUnassignedVar() == 1)
+            allSum_r = (val == remaining_r);
+        if (columnConstraint.numberOfUnassignedVar() > 1)
+            allSum_c = (val < remaining_c);
+        else if (columnConstraint.numberOfUnassignedVar() == 1)
+            allSum_c = (val == remaining_c);
 
-
+        if (allDiff && allSum_r && allSum_c) {
+            assignedVariablesNo++;
+            rowConstraint.addValue(val);
+            columnConstraint.addValue(val);
+            var.setValue(val);
+            return true;
+        }
+        else
+            return false;
     }
 
-    public void removeValue() {
-        valuedVariablesNo--;
-
-
+    public void removeValue(Variable var, int val) {
+        Constraint rowConstraint = var.getRowConstraint();
+        Constraint columnConstraint = var.getColumnConstraint();
+        assignedVariablesNo--;
+        rowConstraint.removeValue(val);
+        columnConstraint.removeValue(val);
+        var.setValue(0);
+    }
+    public void printSolution() {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < nRows; i++) {
+            for (int j = 0; j < nColumns; j++) {
+                if (board[i][j] instanceof Variable)
+                    System.out.format("%3d", ((Variable)board[i][j]).getValue() );
+                else if (board[i][j] instanceof Constraint)
+                    System.out.format("%3d", ((Constraint)board[i][j]).getValue() );
+                else
+                    System.out.format("   ");
+            }
+            System.out.println();
+        }
     }
 }

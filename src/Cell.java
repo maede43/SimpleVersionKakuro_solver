@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
 // A cell can be Constraint, Variable or Black
 // default -> Black cells
@@ -20,16 +23,45 @@ public class Cell {
     }
 }
 
-class Constraint extends Cell{
+class Constraint extends Cell {
     private int constraintValue;
     private Direction direction; // vertical or horizontal
-    public Constraint(int i, int j, int constraintValue, Direction direction) {
+    private Set<Integer> valueOfRelatedVariables = new HashSet<>();
+    private int numberOfRelatedVar;
+    private int already_sum;   // sum of value of related variables
+
+    public Constraint(int i, int j, int constraintValue, Direction direction, int numberOfRelatedVar) {
         super(i, j);
         this.constraintValue = constraintValue;
         this.direction = direction;
+        this.numberOfRelatedVar = numberOfRelatedVar;
+        already_sum = 0;
     }
+
     public int getValue() {
         return constraintValue;
+    }
+
+    public boolean isDiff(int value) {
+        return !(valueOfRelatedVariables.contains(value));
+    }
+
+    public int numberOfUnassignedVar() {
+        return (numberOfRelatedVar - valueOfRelatedVariables.size());
+    }
+
+    public void addValue(int val) {
+        valueOfRelatedVariables.add(val);
+        already_sum += val;
+    }
+
+    public void removeValue(int val) {
+        valueOfRelatedVariables.remove(val);
+        already_sum -= val;
+    }
+
+    public int getAlreadySum() {
+        return already_sum;
     }
 
     @Override
@@ -41,7 +73,7 @@ class Constraint extends Cell{
     }
 }
 
-class Variable extends Cell{
+class Variable extends Cell {
     private int value;
     private ArrayList<Integer> domain = new ArrayList<>();
     private Constraint rowConstraint;
@@ -62,6 +94,10 @@ class Variable extends Cell{
             domain.add(k);
     }
 
+    public void setValue(int value) {
+        this.value = value;
+    }
+
     public void setLeft(Variable left) {
         this.left = left;
     }
@@ -73,11 +109,22 @@ class Variable extends Cell{
     public ArrayList<Integer> getDomain() {
         return domain;
     }
+
+    public int getValue() {
+        return value;
+    }
+
+    public Constraint getRowConstraint() {
+        return rowConstraint;
+    }
+
+    public Constraint getColumnConstraint() {
+        return columnConstraint;
+    }
+
     public void nodeConsistency() {
 
 
-
-        
     }
 
     @Override
