@@ -28,6 +28,8 @@ class Constraint extends Cell {
     private final Set<Integer> valueOfRelatedVariables = new HashSet<>();
     private final int numberOfRelatedVar;
     private int already_sum;   // sum of value of related variables
+    private int lowerBound; // smallest value that a related variable can have
+    private int upperBound; // biggest value that a variable can have
 
     public Constraint(int i, int j, int constraintValue, Direction direction, int numberOfRelatedVar) {
         super(i, j);
@@ -35,6 +37,18 @@ class Constraint extends Cell {
         this.direction = direction;
         this.numberOfRelatedVar = numberOfRelatedVar;
         already_sum = 0;
+        int sum = (numberOfRelatedVar * (numberOfRelatedVar - 1)) / 2;  // sum of : 1, 2, 3, ..., (numberOfRelatedVar-1)
+        upperBound = Math.min(constraintValue - sum, 9);
+        sum = ((20 - numberOfRelatedVar) * (numberOfRelatedVar - 1)) / 2;  // sum of : 9, 8, 7, ..., (9-(numberOfRelatedVar-1)+1)
+        lowerBound = Math.max(constraintValue - sum, 1);
+    }
+
+    public int getLowerBound() {
+        return lowerBound;
+    }
+
+    public int getUpperBound() {
+        return upperBound;
     }
 
     public int getValue() {
@@ -68,6 +82,9 @@ class Constraint extends Cell {
         return "Constraint{" +
                 "cValue=" + constraintValue +
                 ", dir=" + direction +
+//                ", numberOfRelatedVar=" + numberOfRelatedVar +
+//                ", lowerBound=" + lowerBound +
+//                ", upperBound=" + upperBound +
                 '}';
     }
 }
@@ -87,8 +104,9 @@ class Variable extends Cell {
             System.out.println("something goes wrong! (rowConstraint is null))");
         if (columnConstraint == null)
             System.out.println("something goes wrong! (columnConstraint is null))");
-        for (int k = 1; k < 10; k++)
-            domain.add(k);
+
+        // nodeConsistency and initializing domain
+        nodeConsistency();
     }
 
     public void setValue(int value) {
@@ -112,8 +130,12 @@ class Variable extends Cell {
     }
 
     public void nodeConsistency() {
-
-
+        int lowerBound;
+        int upperBound;
+        lowerBound = Math.max(rowConstraint.getLowerBound(), columnConstraint.getLowerBound());
+        upperBound = Math.min(rowConstraint.getUpperBound(), columnConstraint.getUpperBound());
+        for (int k = lowerBound; k <= upperBound; k++)
+            domain.add(k);
     }
 
     @Override
