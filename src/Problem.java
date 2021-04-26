@@ -7,6 +7,7 @@ public class Problem {
     Cell[][] board;
     int variablesNo;
     int assignedVariablesNo;
+    ArrayList<Variable> unassignedVariables = new ArrayList<>();
 
     public Problem(int rows, int columns, int[][] puzzle) {
         this.nRows = rows;
@@ -43,6 +44,7 @@ public class Problem {
                 else if (puzzle[i][j] == 0) {
                     board[i][j] = new Variable(i, j, findRowConstraint(i, j), findColumnConstraint(i, j));
                     variablesNo++;
+                    unassignedVariables.add((Variable)board[i][j]);
                 }
                 /* Black cell */
                 else { // -1
@@ -113,6 +115,18 @@ public class Problem {
         return null;
     }
 
+    public Variable MRV() {
+        int min_domain = Integer.MAX_VALUE;
+        Variable minRemainingValue = null;
+        for (Variable var : unassignedVariables) {
+            if (var.getDomain().size() < min_domain) {
+                min_domain = var.getDomain().size();
+                minRemainingValue = var;
+            }
+        }
+        return minRemainingValue;
+    }
+
     public boolean isSatisfied() {
         return (variablesNo == assignedVariablesNo);
     }
@@ -139,6 +153,7 @@ public class Problem {
             rowConstraint.addValue(val);
             columnConstraint.addValue(val);
             var.setValue(val);
+            unassignedVariables.remove(var);
             return true;
         } else
             return false;
@@ -150,6 +165,7 @@ public class Problem {
         assignedVariablesNo--;
         rowConstraint.removeValue(val);
         columnConstraint.removeValue(val);
+        unassignedVariables.add(var);
         var.setValue(0);
     }
 

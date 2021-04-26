@@ -15,10 +15,12 @@ public class BacktrackingSearch {
     }
 
     private ExitStatus back_track() {
+//        problem.printSolution();
         if (problem.isSatisfied()) {
             return ExitStatus.SOLUTION;
         }
-        Variable var = problem.getUnassignedVariable();
+//        problem.printVariables();
+        Variable var = problem.MRV();
         ArrayList<Integer> domain = var.getDomain();
         for (Integer value : domain) {
             if (problem.setValueIfIsConsistent(var, value)) {
