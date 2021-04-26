@@ -1,3 +1,6 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class Problem {
     int nRows;
     int nColumns;
@@ -137,8 +140,7 @@ public class Problem {
             columnConstraint.addValue(val);
             var.setValue(val);
             return true;
-        }
-        else
+        } else
             return false;
     }
 
@@ -150,15 +152,34 @@ public class Problem {
         columnConstraint.removeValue(val);
         var.setValue(0);
     }
+
     public void printSolution() {
         for (int i = 0; i < nRows; i++) {
             for (int j = 0; j < nColumns; j++) {
                 if (board[i][j] instanceof Variable)
-                    System.out.format("%3d", ((Variable)board[i][j]).getValue() );
+                    System.out.format("%3d", ((Variable) board[i][j]).getValue());
                 else if (board[i][j] instanceof Constraint)
-                    System.out.format("%3d", ((Constraint)board[i][j]).getValue() );
+                    System.out.format("%3d", ((Constraint) board[i][j]).getValue());
                 else
                     System.out.format("   ");
+            }
+            System.out.println();
+        }
+    }
+
+    public void printVariables() {
+        for (int i = 0; i < nRows; i++) {
+            for (int j = 0; j < nColumns; j++) {
+                if (board[i][j] instanceof Variable) {
+                    ArrayList<Integer> domain = ((Variable) board[i][j]).getDomain();
+                    int dom = 0;
+                    for (Integer d : domain)
+                        dom = 10 * dom + d;
+                    System.out.format("[%2d, %9d]", ((Variable) board[i][j]).getValue(), dom);
+                } else if (board[i][j] instanceof Constraint)
+                    System.out.format("[%2d           ]", ((Constraint) board[i][j]).getValue());
+                else
+                    System.out.format("[             ]");
             }
             System.out.println();
         }

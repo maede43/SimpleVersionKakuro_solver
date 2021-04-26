@@ -1,23 +1,24 @@
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 
 // A cell can be Constraint, Variable or Black
 // default -> Black cells
 public class Cell {
-    protected int i;
-    protected int j;
+    protected int x;
+    protected int y;
 
-    public Cell(int i, int j) {
-        this.i = i;
-        this.j = j;
+    public Cell(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
     @Override
     public String toString() {
         return "Cell{" +
-                "i=" + i +
-                ", j=" + j +
+                "x=" + x +
+                ", y=" + y +
                 '}';
     }
 }
@@ -37,10 +38,18 @@ class Constraint extends Cell {
         this.direction = direction;
         this.numberOfRelatedVar = numberOfRelatedVar;
         already_sum = 0;
-        int sum = (numberOfRelatedVar * (numberOfRelatedVar - 1)) / 2;  // sum of : 1, 2, 3, ..., (numberOfRelatedVar-1)
-        upperBound = Math.min(constraintValue - sum, 9);
-        sum = ((20 - numberOfRelatedVar) * (numberOfRelatedVar - 1)) / 2;  // sum of : 9, 8, 7, ..., (9-(numberOfRelatedVar-1)+1)
-        lowerBound = Math.max(constraintValue - sum, 1);
+        upperBound = upperBound_calculate(constraintValue, numberOfRelatedVar);
+        lowerBound = lowerBound_calculate(constraintValue, numberOfRelatedVar);
+    }
+
+    public int upperBound_calculate(int currentValue, int numberOfUnassignedVar) {
+        int sum = (numberOfUnassignedVar * (numberOfUnassignedVar - 1)) / 2;  // sum of : 1, 2, 3, ..., (numberOfRelatedVar-1)
+        return Math.min(currentValue - sum, 9);
+    }
+
+    public int lowerBound_calculate(int currentValue, int numberOfUnassignedVar) {
+        int sum = ((20 - numberOfUnassignedVar) * (numberOfUnassignedVar - 1)) / 2;  // sum of : 9, 8, 7, ..., (9-(numberOfRelatedVar-1)+1)
+        return Math.max(currentValue - sum, 1);
     }
 
     public int getLowerBound() {
@@ -91,7 +100,8 @@ class Constraint extends Cell {
 
 class Variable extends Cell {
     private int value;
-    private ArrayList<Integer> domain = new ArrayList<>();
+    private Domain domain = new Domain();
+    private Stack<Domain> domain_history = new Stack<>();
     private final Constraint rowConstraint;
     private final Constraint columnConstraint;
 
@@ -114,7 +124,7 @@ class Variable extends Cell {
     }
 
     public ArrayList<Integer> getDomain() {
-        return domain;
+        return domain.getDomain();
     }
 
     public int getValue() {
@@ -134,8 +144,34 @@ class Variable extends Cell {
         int upperBound;
         lowerBound = Math.max(rowConstraint.getLowerBound(), columnConstraint.getLowerBound());
         upperBound = Math.min(rowConstraint.getUpperBound(), columnConstraint.getUpperBound());
+        ArrayList<Integer> d = new ArrayList<>();
         for (int k = lowerBound; k <= upperBound; k++)
-            domain.add(k);
+            d.add(k);
+        domain.setDomain(d);
+    }
+
+    public void update_domain(int value, int lowerBound, int upperBound) {
+//        System.out.println("lowerBound : " + lowerBound + " upperBound : " + upperBound);
+        domain_history.push(domain.copy());
+        domain.getDomain().remove((Integer) value);
+        domain.getDomain().removeIf(d -> d > upperBound || d < lowerBound);
+    }
+
+    public void undo_domain() {
+        if (!domain_history.isEmpty())
+            domain = domain_history.pop();
+    }
+
+//    public void printStack() {
+//        System.out.println("stack : {");
+//        for (Domain d : domain_history) {
+//            System.out.println(d.getDomain());
+//        }
+//        System.out.println("}");
+//    }
+
+    public boolean domainIsEmpty() {
+        return domain.getDomain().isEmpty();
     }
 
     @Override
@@ -148,5 +184,27 @@ class Variable extends Cell {
                 ", rowConstraint=" + rowConstraint +
                 ", columnConstraint=" + columnConstraint +
                 '}';
+    }
+}
+
+class Domain {
+    private ArrayList<Integer> domain;
+
+    public Domain() {
+        domain = new ArrayList<>();
+    }
+    public Domain(ArrayList<Integer> domain) {
+        this.domain = domain;
+    }
+
+    public void setDomain(ArrayList<Integer> domain) {
+        this.domain = domain;
+    }
+
+    public ArrayList<Integer> getDomain() {
+        return domain;
+    }
+    public Domain copy() {
+        return new Domain(new ArrayList<>(domain));
     }
 }

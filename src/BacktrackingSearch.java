@@ -15,7 +15,6 @@ public class BacktrackingSearch {
     }
 
     private ExitStatus back_track() {
-//        System.out.format(".");
         if (problem.isSatisfied()) {
             return ExitStatus.SOLUTION;
         }
@@ -23,14 +22,60 @@ public class BacktrackingSearch {
         ArrayList<Integer> domain = var.getDomain();
         for (Integer value : domain) {
             if (problem.setValueIfIsConsistent(var, value)) {
-                ExitStatus result;
-                result = back_track();
-                if (result == ExitStatus.SOLUTION)
-                    return ExitStatus.SOLUTION;
+                if (forwardChecking(var, value)) {
+                    ExitStatus result = back_track();
+                    if (result == ExitStatus.SOLUTION)
+                        return ExitStatus.SOLUTION;
+                }
+                forwardChecking_undo(var);
                 problem.removeValue(var, value);
             }
         }
         return ExitStatus.FAILURE;
+    }
+
+    // return : boolean allIsNotEmpty
+    private boolean forwardChecking(Variable var, int value) {
+        Cell cell;
+        Constraint rCons = var.getRowConstraint();
+        Constraint cCons = var.getColumnConstraint();
+        int upperBound = cCons.upperBound_calculate(cCons.getValue() - cCons.getAlreadySum(), cCons.numberOfUnassignedVar());
+        int lowerBound = cCons.lowerBound_calculate(cCons.getValue() - cCons.getAlreadySum(), cCons.numberOfUnassignedVar());
+        for (int i = 0; i < problem.nRows; i++) {
+            cell = problem.board[i][var.y];
+            if (i != var.x && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                ((Variable) cell).update_domain(value, lowerBound, upperBound);
+                if (((Variable) cell).domainIsEmpty())
+                    return false;
+            }
+        }
+        upperBound = rCons.upperBound_calculate(rCons.getValue() - rCons.getAlreadySum(), rCons.numberOfUnassignedVar());
+        lowerBound = rCons.lowerBound_calculate(rCons.getValue() - rCons.getAlreadySum(), rCons.numberOfUnassignedVar());
+        for (int j = 0; j < problem.nColumns; j++) {
+            cell = problem.board[var.x][j];
+            if (j != var.y && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                ((Variable) cell).update_domain(value, lowerBound, upperBound);
+                if (((Variable) cell).domainIsEmpty())
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private void forwardChecking_undo(Variable var) {
+        Cell cell;
+        for (int i = 0; i < problem.nRows; i++) {
+            cell = problem.board[i][var.y];
+            if (i != var.x && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                ((Variable) cell).undo_domain();
+            }
+        }
+        for (int j = 0; j < problem.nColumns; j++) {
+            cell = problem.board[var.x][j];
+            if (j != var.y && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                ((Variable) cell).undo_domain();
+            }
+        }
     }
 }
 
