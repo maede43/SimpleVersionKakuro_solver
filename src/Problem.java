@@ -1,5 +1,7 @@
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Problem {
     int nRows;
@@ -199,5 +201,75 @@ public class Problem {
             }
             System.out.println();
         }
+    }
+
+    public void AC_3() {
+        Queue<PairOfVar> queue = new LinkedList<>();
+        // initialize the queue
+        for (int i = 1; i < nRows; i++) {
+            for (int j = 1; j < nColumns; j++) {
+                if (board[i][j] instanceof Variable) {
+                    Variable var = (Variable) board[i][j];
+                    for (Variable v : GET_NEIGHBORS(var)) {
+                        queue.add(new PairOfVar(var, v));
+                    }
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            PairOfVar p = queue.poll();
+            if (REMOVE_INCONSISTENT_VALUES(p)) {
+                for (Variable v : GET_NEIGHBORS(p.var1)) {
+                    queue.add(new PairOfVar(v, p.var1));
+                }
+            }
+        }
+
+    }
+
+    private boolean REMOVE_INCONSISTENT_VALUES(PairOfVar p) {
+        boolean removed = true;
+        Variable var1 = p.var1;
+        Variable var2 = p.var2;
+        for (Integer x : var1.getDomain()) {
+            removed = true;
+            for (Integer y : var2.getDomain()) {
+                if (!x.equals(y)) {
+                    removed = false;
+                    break;
+                }
+            }
+            if (removed) {
+                var1.removeFromDomain(x);
+            }
+        }
+        return removed;
+    }
+
+    private ArrayList<Variable> GET_NEIGHBORS(Variable var) {
+        ArrayList<Variable> neighbors = new ArrayList<>();
+        Cell cell;
+        for (int k = 0; k < nRows; k++) {
+            cell = board[k][var.y];
+            if (k != var.x && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                neighbors.add((Variable)cell);
+            }
+        }
+        for (int l = 0; l < nColumns; l++) {
+            cell = board[var.x][l];
+            if (l != var.y && cell instanceof Variable && ((Variable) cell).getValue() == 0) {
+                neighbors.add((Variable)cell);
+            }
+        }
+        return neighbors;
+    }
+}
+
+class PairOfVar{
+    Variable var1;
+    Variable var2;
+    public PairOfVar(Variable var1, Variable var2){
+        this.var1 = var1;
+        this.var2 = var2;
     }
 }

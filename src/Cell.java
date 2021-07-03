@@ -185,6 +185,19 @@ class Variable extends Cell {
                 ", columnConstraint=" + columnConstraint +
                 '}';
     }
+
+    // use for lcv
+    public int getNumberOfLegalDomain(int value, int lowerBound, int upperBound) {
+        Domain temp = domain.copy();
+        temp.getDomain().remove((Integer) value);
+        temp.getDomain().removeIf(d -> d > upperBound || d < lowerBound);
+        return temp.getDomain().size();
+    }
+
+    public void removeFromDomain(int value) {
+        domain.getDomain().remove((Integer) value);
+    }
+
 }
 
 class Domain {
